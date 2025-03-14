@@ -1,3 +1,9 @@
+bpftrace
 dkms
 ethtool
+firmware-sof
 iproute2
+kmod
+kpatch
+linux-base
+wireless-regdb
