@@ -1,11 +1,14 @@
 bpftrace
 dkms
+dwarves
 ethtool
 firmware-sof
 iproute2
 kdump-tools
+kexec-tools
 kmod
 kpatch
+libbpf
 linux-base
 rt-tests
 wireless-regdb
