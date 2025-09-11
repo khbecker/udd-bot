@@ -1,4 +1,5 @@
 bpftrace
+crash
 dkms
 dwarves
 ethtool
@@ -10,5 +11,6 @@ kmod
 kpatch
 libbpf
 linux-base
+makedumpfile
 rt-tests
 wireless-regdb
