@@ -1,7 +1,7 @@
 
 # kernel team udd link
 
-[Click this link to access kernel-team UDD](https://udd.debian.org/dmd/?email1=&email2=&email3=&packages=bpftrace+crash+dkms+dwarves+ethtool+firmware-sof+iproute2+kdump-tools+kexec-tools+kmod+kpatch+libbpf+linux-base+makedumpfile+rt-tests+wireless-regdb&ignpackages=&format=html#todo).
+[Click this link to access kernel-team UDD](https://udd.debian.org/dmd/?email1=&email2=&email3=&packages=bpftrace+crash+dkms+dwarves+ethtool+firmware-sof+iproute2+kdump-tools+kexec-tools+kmod+kpatch+libbpf+linux-base+makedumpfile+rt-tests+strace+wireless-regdb&ignpackages=&format=html#todo).
 
 ## Updating package list
 

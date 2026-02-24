@@ -13,4 +13,5 @@ libbpf
 linux-base
 makedumpfile
 rt-tests
+strace
 wireless-regdb
