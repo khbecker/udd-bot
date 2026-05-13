@@ -20,3 +20,30 @@ tracker](https://people.canonical.com/~platform/desktop/versions/versions.html),
 but it is less advanced than the UDD tracker, so better just use UDD in the
 first place.
 
+## Web dashboard
+
+A local web dashboard is available that shows package versions with
+color-coded status, sorting/filtering, links to package trackers, and
+AI-generated prompts for updating packages.
+
+### Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Running
+
+```bash
+python3 web.py
+```
+
+Then open http://127.0.0.1:5000 in your browser.
+
+Options:
+- `--port PORT` — bind to a different port (default: 5000)
+- `--host HOST` — bind to a different address (default: 127.0.0.1)
+- `--debug` — enable Flask debug/reload mode
+
