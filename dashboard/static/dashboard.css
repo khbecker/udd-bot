@@ -1,0 +1,179 @@
+/* Layered on top of Vanilla Framework, which provides the typography,
+ * colours, tables, notifications, status labels and modal.
+ *
+ * Keep this file small: if Vanilla has a class for it, use the class.
+ */
+
+/* Ubuntu brand orange, used only for the sorted-column indicator. */
+:root {
+  --k-orange: #e95420;
+  --k-negative: #c7162b;
+}
+
+/* --- Filters -------------------------------------------------------------
+ * Vanilla's form grid is column-based; this wants one wrapping row.
+ */
+.k-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+.k-filters__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+}
+.k-filters__field .p-form__label {
+  margin-bottom: 0.2rem;
+}
+.k-filters__field .p-form__control {
+  margin-bottom: 0.5rem;
+}
+.k-filters__field--action {
+  min-width: 0;
+}
+
+/* --- Table --------------------------------------------------------------- */
+
+/* Monospace makes differences between two long version strings visible. */
+.k-version,
+.k-prompt {
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.k-version {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.k-packages {
+  table-layout: auto;
+}
+.k-packages td,
+.k-packages th {
+  vertical-align: top;
+}
+.k-packages tbody td {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+/* Vanilla draws the caret; mark the active column with the brand colour. */
+.k-packages th[aria-sort="ascending"],
+.k-packages th[aria-sort="descending"] {
+  box-shadow: inset 0 -2px 0 var(--k-orange);
+}
+
+/* Status labels sit inline after text and must not collide with it. */
+.k-packages td [class*="p-status-label"] {
+  margin-left: 0.25rem;
+  vertical-align: baseline;
+}
+
+.k-text--negative {
+  color: var(--k-negative);
+}
+
+/* --- Actions column ------------------------------------------------------
+ *
+ * Actions must not read as status labels. Labels are solid, square and
+ * inert; buttons are outlined, rounded and respond to hover, focus and
+ * press. The trailing ellipsis marks "opens a dialog".
+ */
+
+.k-actions .k-action.p-button {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  padding: 0.15rem 0.5rem;
+  margin: 0 0 0.25rem 0.25rem;
+  border-radius: 3px;
+  border-width: 1px;
+  border-color: #a6a6a6;
+  background-color: #fff;
+  color: #111;
+  font-weight: 400;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08); /* reads as pressable */
+}
+
+.k-actions .k-action.p-button:hover {
+  background-color: #f2f2f2;
+  border-color: var(--k-orange);
+  color: #111;
+}
+
+.k-actions .k-action.p-button:focus-visible {
+  outline: 2px solid #2e96ff;
+  outline-offset: 1px;
+}
+
+.k-actions .k-action.p-button:active {
+  background-color: #e8e8e8;
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+.k-actions {
+  white-space: nowrap;
+}
+
+/* Status labels are output, not controls. */
+.k-packages td [class*="p-status-label"] {
+  cursor: default;
+  border-radius: 0;
+}
+
+.k-links {
+  margin-top: 0.25rem;
+}
+.k-links summary {
+  cursor: pointer;
+  color: var(--vf-color-link-default, #06c);
+}
+.k-links ul {
+  margin-top: 0.25rem;
+  text-align: left;
+}
+
+/* --- Prompt modal -------------------------------------------------------- */
+
+/* Narrow Vanilla's 80rem cap. Do not touch positioning: it switches between
+ * absolute and flow layout by breakpoint. */
+.p-modal .p-modal__dialog {
+  max-width: 52rem;
+}
+.k-prompt {
+  max-height: 55vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  background: #f7f7f7;
+  border: 1px solid #cdcdcd;
+  border-radius: 2px;
+  padding: 1rem;
+}
+
+/* --- Footer -------------------------------------------------------------- */
+
+.k-footer {
+  margin-top: 2rem;
+  padding: 1.5rem 0;
+}
+
+/* --- Responsive ---------------------------------------------------------- */
+
+/* p-table--mobile-card collapses into per-row cards here. */
+@media (max-width: 620px) {
+  .k-version {
+    white-space: normal;
+    word-break: break-all;
+  }
+  .k-filters__field {
+    min-width: 100%;
+  }
+  .k-actions {
+    text-align: left !important;
+  }
+}

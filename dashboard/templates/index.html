@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kernel Team Package Status | Ubuntu</title>
+<link rel="icon" type="image/png" sizes="32x32"
+      href="https://assets.ubuntu.com/v1/be7e4cc6-COF-favicon-32x32.png">
+<link rel="stylesheet" type="text/css" media="screen"
+      href="https://ubuntu.com/static/css/styles.css?v=9015880">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+
+<body class="is-paper">
+
+<header id="navigation" class="p-navigation is-dark">
+  <div class="p-navigation__row--25-75">
+    <div class="p-navigation__banner">
+      <div class="p-navigation__tagged-logo">
+        <a class="p-navigation__link" href="/">
+          <div class="p-navigation__logo-tag">
+            <img class="p-navigation__logo-icon"
+                 src="https://assets.ubuntu.com/v1/82818827-CoF_white.svg" alt="">
+          </div>
+          <span class="p-navigation__logo-title">Kernel packages</span>
+        </a>
+      </div>
+    </div>
+    <nav class="p-navigation__nav" aria-label="Package tracker navigation">
+      <ul class="p-navigation__items">
+        <li class="p-navigation__item is-selected">
+          <a class="p-navigation__link" href="/" aria-current="page">Status</a>
+        </li>
+        <li class="p-navigation__item">
+          <a class="p-navigation__link" href="{{ udd_url }}" target="_blank" rel="noopener">UDD</a>
+        </li>
+        <li class="p-navigation__item">
+          <a class="p-navigation__link"
+             href="https://ubuntu-archive-team.ubuntu.com/proposed-migration/update_excuses.html"
+             target="_blank" rel="noopener">Proposed migration</a>
+        </li>
+        <li class="p-navigation__item">
+          <a class="p-navigation__link" href="https://merges.ubuntu.com/"
+             target="_blank" rel="noopener">Merges</a>
+        </li>
+        <li class="p-navigation__item">
+          <a class="p-navigation__link" href="/api/packages">API</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main-content">
+
+<section class="p-section--hero">
+  <div class="row--50-50-on-large">
+    <div class="col">
+      <h1>Kernel team package status</h1>
+    </div>
+    <div class="col">
+      <p>
+        Merge and sync status for the {{ packages|length }} userland packages the
+        kernel team maintains, tracked across Ubuntu
+        <strong>{{ devel_series }}</strong>{% if not series_resolved %}
+        <span class="p-status-label">series guessed</span>{% endif %},
+        <strong>{{ lts_series }}</strong> and Debian sid.
+      </p>
+      <p class="p-text--small u-text--muted u-no-margin--bottom">
+        Data from the UDD public mirror, cached for five minutes.
+        {% if fetched_at %}Updated {{ fetched_at | timestamp }}.{% endif %}
+        <a href="?refresh=1">Refresh now</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="p-section--shallow">
+  <div class="u-fixed-width">
+    <hr class="p-rule">
+
+    {% if stale_error %}
+    <div class="p-notification--negative">
+      <div class="p-notification__content">
+        <h5 class="p-notification__title">Showing cached data</h5>
+        <p class="p-notification__message">
+          The last refresh from UDD failed: <code>{{ stale_error }}</code>
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if dif_passed is none %}
+    <div class="p-notification--information">
+      <div class="p-notification__content">
+        <h5 class="p-notification__title">Debian Import Freeze: unknown</h5>
+        <p class="p-notification__message">
+          Set <code>UDD_DIF_DATE=YYYY-MM-DD</code> to get correct advice for
+          packages with no Ubuntu delta. Before DIF they sync automatically;
+          after DIF they need a manual sync.
+        </p>
+      </div>
+    </div>
+    {% elif dif_passed %}
+    <div class="p-notification--caution">
+      <div class="p-notification__content">
+        <h5 class="p-notification__title">
+          Debian Import Freeze passed &mdash; {{ dif_date }} ({{ -dif_days }} days ago)
+        </h5>
+        <p class="p-notification__message">
+          Autosync is off. Packages with no Ubuntu delta no longer update
+          themselves and need a manual sync.
+        </p>
+      </div>
+    </div>
+    {% else %}
+    <div class="p-notification--{% if dif_days <= 21 %}caution{% else %}information{% endif %}">
+      <div class="p-notification__content">
+        <h5 class="p-notification__title">
+          Debian Import Freeze in {{ dif_days }} day{{ '' if dif_days == 1 else 's' }}
+          &mdash; {{ dif_date }}
+        </h5>
+        <p class="p-notification__message">
+          Packages with no Ubuntu delta still sync from Debian automatically
+          until then. After DIF they stop, so land the
+          <strong>{{ action_count }}</strong> outstanding
+          item{{ '' if action_count == 1 else 's' }} before the freeze.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="p-section--shallow">
+  <div class="u-fixed-width">
+    <form class="k-filters" onsubmit="return false">
+      <div class="k-filters__field">
+        <label class="p-form__label" for="filter">Package</label>
+        <input type="search" id="filter" class="p-form__control" placeholder="Filter by name">
+      </div>
+      <div class="k-filters__field">
+        <label class="p-form__label" for="stateFilter">State</label>
+        <select id="stateFilter" class="p-form__control">
+          <option value="">All states</option>
+          <option value="__action">Needs attention</option>
+          <option value="merge-needed">Merge needed</option>
+          <option value="sync-available">Sync available</option>
+          <option value="in-proposed">In proposed</option>
+          <option value="not-in-devel">Not in devel</option>
+          <option value="autosync-pending">Autosync pending</option>
+          <option value="synced">Synced</option>
+          <option value="delta-current">Delta current</option>
+        </select>
+      </div>
+      <div class="k-filters__field">
+        <label class="p-form__label" for="upstreamFilter">Upstream</label>
+        <select id="upstreamFilter" class="p-form__control">
+          <option value="">Any status</option>
+          <option value="newer">Newer available</option>
+          <option value="up-to-date">Up to date</option>
+          <option value="unknown">Unknown / watch broken</option>
+        </select>
+      </div>
+      <div class="k-filters__field">
+        <label class="p-form__label" for="componentFilter">Component</label>
+        <select id="componentFilter" class="p-form__control">
+          <option value="">Any</option>
+          <option value="main">main</option>
+          <option value="universe">universe</option>
+        </select>
+      </div>
+      <div class="k-filters__field k-filters__field--action">
+        <button type="button" class="p-button" id="resetBtn">Reset</button>
+      </div>
+    </form>
+    <p class="p-text--small u-text--muted" id="count"></p>
+  </div>
+</section>
+
+<section class="p-section--shallow">
+  <div class="u-fixed-width">
+    <table class="p-table--mobile-card k-packages" id="pkgTable">
+      <caption class="u-hide">Package status across Ubuntu and Debian</caption>
+      <thead>
+        <tr>
+          <th data-sort="pkg" aria-sort="ascending">Package</th>
+          <th data-sort="state">State</th>
+          <th data-sort="devel">{{ devel_series }}</th>
+          <th data-sort="proposed">-proposed</th>
+          <th data-sort="debian">Debian sid</th>
+          <th data-sort="lts">{{ lts_series }}</th>
+          <th data-sort="upstream">Upstream</th>
+          <th data-sort="upload">Last upload</th>
+          <th class="u-align--right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in packages %}
+        <tr data-pkg="{{ p.package }}"
+            data-state="{{ p.state }}"
+            data-actionable="{{ 'yes' if p.actionable else 'no' }}"
+            data-upstream="{{ p.upstream_state }}"
+            data-component="{{ p.component or '' }}">
+          <td data-heading="Package">
+            <a href="https://launchpad.net/ubuntu/+source/{{ p.package }}"
+               target="_blank" rel="noopener"><strong>{{ p.package }}</strong></a>
+            {% if p.component == 'universe' %}
+            <span class="p-status-label">universe</span>
+            {% endif %}
+          </td>
+          <td data-heading="State">
+            <span class="p-status-label--{{ p.state_class }}"
+                  title="{{ p.state_explanation }}">{{ p.state_label }}</span>
+            {% if p.delta %}
+            <span class="p-status-label--caution" title="Ubuntu delta">{{ p.delta }}</span>
+            {% endif %}
+            {% if p.native %}
+            <span class="p-status-label" title="Native source format">native</span>
+            {% endif %}
+          </td>
+          <td data-heading="{{ devel_series }}" class="k-version">{{ p.ubuntu_devel or '—' }}</td>
+          <td data-heading="-proposed" class="k-version">
+            {% if p.ubuntu_proposed %}
+              {{ p.ubuntu_proposed }}
+              {% if p.in_proposed %}<span class="p-status-label--information">pending</span>{% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td data-heading="Debian sid" class="k-version">
+            {{ p.debian_sid or '—' }}
+            {% if p.debian_experimental %}
+            <span class="p-status-label" title="In experimental">exp {{ p.debian_experimental }}</span>
+            {% endif %}
+          </td>
+          <td data-heading="{{ lts_series }}" class="k-version">{{ p.ubuntu_lts or '—' }}</td>
+          <td data-heading="Upstream" class="k-version">
+            {% if p.upstream_state == 'unknown' %}
+              <span class="u-text--muted" title="Watch data missing or unreliable{% if p.watch_status %}: {{ p.watch_status }}{% endif %}">
+                {{ p.upstream or '—' }} <span class="p-status-label">?</span>
+              </span>
+            {% elif p.upstream_state == 'newer' %}
+              <span class="k-text--negative" title="{{ p.watch_status }}">{{ p.upstream }}</span>
+            {% else %}
+              <span title="{{ p.watch_status }}">{{ p.upstream or '—' }}</span>
+            {% endif %}
+          </td>
+          <td data-heading="Last upload">
+            {% if p.last_upload_date %}
+              <span class="k-version">{{ p.last_upload_date }}</span><br>
+              <span class="p-text--small u-text--muted">{{ p.last_uploader or 'unknown' }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td data-heading="Actions" class="u-align--right k-actions">
+            {% for prompt in p.prompts %}
+            <button type="button"
+                    class="p-button is-small k-action js-prompt"
+                    data-prompt-pkg="{{ p.package }}"
+                    data-prompt-kind="{{ prompt.kind }}"
+                    title="{{ prompt.title }}">{{ prompt.label }}&hellip;</button>
+            {% endfor %}
+            <details class="k-links">
+              <summary class="p-text--small">Links</summary>
+              <ul class="p-list u-no-margin--bottom">
+                <li class="p-list__item"><a href="https://tracker.debian.org/pkg/{{ p.package }}" target="_blank" rel="noopener">Debian tracker</a></li>
+                <li class="p-list__item"><a href="https://launchpad.net/ubuntu/+source/{{ p.package }}/+publishinghistory" target="_blank" rel="noopener">Publishing history</a></li>
+                <li class="p-list__item"><a href="https://merges.ubuntu.com/{{ p.package[0] }}/{{ p.package }}/" target="_blank" rel="noopener">Merge report</a></li>
+                <li class="p-list__item"><a href="https://ubuntu-archive-team.ubuntu.com/proposed-migration/update_excuses.html#{{ p.package }}" target="_blank" rel="noopener">Update excuses</a></li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="p-section">
+  <div class="u-fixed-width">
+    <hr class="p-rule">
+    <h2>What the states mean</h2>
+    <div class="row">
+      <div class="col-6">
+        <ul class="p-list--divided">
+          <li class="p-list__item"><span class="p-status-label--positive">Synced</span> Identical to Debian, no Ubuntu delta. Nothing to do.</li>
+          <li class="p-list__item"><span class="p-status-label--information">Autosync pending</span> No delta and Debian is newer. Handled automatically before DIF.</li>
+          <li class="p-list__item"><span class="p-status-label--positive">Delta current</span> Ubuntu carries a delta but Debian is not ahead.</li>
+          <li class="p-list__item"><span class="p-status-label--negative">Merge needed</span> Debian is newer and Ubuntu carries a delta that must be rebased.</li>
+        </ul>
+      </div>
+      <div class="col-6">
+        <ul class="p-list--divided">
+          <li class="p-list__item"><span class="p-status-label--negative">Sync available</span> Ubuntu packaged this upstream release first and Debian has caught up; the delta can probably be dropped.</li>
+          <li class="p-list__item"><span class="p-status-label--caution">In proposed</span> The upload already exists. Chase proposed-migration rather than uploading again.</li>
+          <li class="p-list__item"><span class="p-status-label--caution">Not in devel</span> Absent from the devel series; check whether it was removed.</li>
+          <li class="p-list__item"><span class="p-status-label--information">Ubuntu only</span> No Debian counterpart.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="p-text--small u-text--muted">
+      The upstream column comes from Debian's watch files and is a separate axis
+      from the Ubuntu/Debian comparison. <span class="u-text--muted">Muted</span>
+      means the watch data is missing or unreliable &mdash; not that the package
+      is fine.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<div class="p-modal" id="promptModal" style="display: none;">
+  <section class="p-modal__dialog" role="dialog" aria-modal="true"
+           aria-labelledby="modalTitle">
+    <header class="p-modal__header">
+      <h2 class="p-modal__title" id="modalTitle">Prompt</h2>
+      <button class="p-modal__close" aria-label="Close active modal" id="closeBtn">Close</button>
+    </header>
+    <p class="p-text--small u-text--muted">
+      Copy this into an AI assistant. It is generated from the package's current
+      state, versions and delta.
+    </p>
+    <pre class="k-prompt" id="modalPrompt">Loading…</pre>
+    <footer class="p-modal__footer">
+      <button class="p-button--positive" id="copyBtn">Copy to clipboard</button>
+    </footer>
+  </section>
+</div>
+
+<footer class="p-strip--dark u-clearfix k-footer">
+  <div class="u-fixed-width">
+    <p class="p-text--small u-no-margin--bottom">
+      Generated from the <a href="{{ udd_url }}" target="_blank" rel="noopener">Ubuntu/Debian
+      Universal Database</a>. Package list is maintained in
+      <code>package-list.txt</code> in this repository.
+    </p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
